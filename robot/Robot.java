@@ -4,9 +4,19 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.LimelightHelpers;
+import frc.robot.commands.*;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -16,7 +26,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
-  private final RobotContainer m_robotContainer;
+  public final RobotContainer m_robotContainer;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -26,6 +36,8 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    Pose2d init_pose = new Pose2d();
+    m_robotContainer.m_robotDrive.resetOdometry(init_pose);
   }
 
   /**
@@ -42,6 +54,57 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
+    // LimelightHelpers.SetRobotOrientation("limelight", m_robotContainer.m_robotDrive.getHeading(), kDefaultPeriod, kDefaultPeriod, kDefaultPeriod, kDefaultPeriod, kDefaultPeriod);
+
+    double heading = m_robotContainer.m_robotDrive.getHeading();
+    double omegaRps = Units.degreesToRotations(m_robotContainer.m_robotDrive.getTurnRate());
+    LimelightHelpers.SetRobotOrientation("limelight", heading, omegaRps, 0.0, 0.0, 0.0, 0.0);
+    // LimelightHelpers.PoseEstimate llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+    LimelightHelpers.PoseEstimate mt2Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+
+    if (mt2Estimate != null && mt2Estimate.tagCount > 0 && Math.abs(omegaRps) < 2.0) {
+      // m_robotContainer.m_robotDrive.resetOdometry(mt2Estimate.pose);
+      m_robotContainer.m_robotDrive.addVision(mt2Estimate.pose);
+    }
+
+    SmartDashboard.putData("Drive", m_robotContainer.m_robotDrive);
+    SmartDashboard.putNumber("ACtual Speed (m/s)", m_robotContainer.m_robotDrive.getVelocity());
+    SmartDashboard.putNumber("Acceleration", m_robotContainer.m_robotDrive.getAccel());
+    SmartDashboard.putNumber("Omega (rot/s)", omegaRps);
+    SmartDashboard.putNumberArray("X", new double[]{Math.round(m_robotContainer.m_robotDrive.getPose().getTranslation().getX() * 100) / 100.0, Math.round(m_robotContainer.m_robotDrive.getPose().getTranslation().getY() * 100) / 100.0});
+
+    
+
+    // LimelightHelpers.SetRobotOrientation("limelight", m_robotContainer.m_robotDrive.getHeading(), 0, 0, 0, 0, 0);
+    // LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+
+    // if (mt2 != null && mt2.tagCount > 0 && Math.abs(omegaRps) < 2.0) {
+    //   m_robotContainer.m_robotDrive.resetOdometry(mt2.pose);
+    // }
+
+    // boolean doRejectUpdate = false;
+    
+    // // if our angular velocity is greater than 360 degrees per second, ignore vision updates
+    // if(Math.abs(omegaRps) < 1.0){
+    //   doRejectUpdate = true;
+    // }
+    // // if our vision measurement has no targets, ignore vision updates
+    // if(mt2.tagCount == 0){
+    //   doRejectUpdate = true;
+    // }
+    // // if our vision measurement is more than 1 second old, ignore vision updates
+    // if(mt2.latency > 1.0){
+    //   doRejectUpdate = true;
+    // }
+    // // if our vision measurement is more than 10 meters away, ignore vision updates
+    // if(mt2.pose.getTranslation().getNorm() > 10.0){
+    //   doRejectUpdate = true;
+    // }
+    // if(!doRejectUpdate){
+    //   //m_robotContainer.m_robotDrive.m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+    //   m_robotContainer.m_robotDrive.resetOdometry(mt2.pose);
+    // }
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -54,12 +117,18 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    AutoCommands m_autonomousCommand = new AutoCommands(m_robotContainer);
 
     // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
-    }
+    // if (m_autonomousCommand != null) {
+    //   CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    // }
+
+    CommandScheduler.getInstance().schedule(m_autonomousCommand);
+
+    Pose2d init_pose = new Pose2d();
+    m_robotContainer.m_robotDrive.resetOdometry(init_pose);
   }
 
   /** This function is called periodically during autonomous. */

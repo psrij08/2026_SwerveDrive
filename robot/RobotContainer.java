@@ -16,16 +16,35 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.DriveDistance;
+import frc.robot.commands.ShootCommand;
+import frc.robot.commands.SpinUp;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
+
 import java.util.List;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -35,10 +54,14 @@ import java.util.List;
  */
 public class RobotContainer {
     // The robot's subsystems and commands are defined here...
-    private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+    public final DriveSubsystem m_robotDrive = new DriveSubsystem();
+    public final ShooterSubsystem m_robotShooter = new ShooterSubsystem();
+
+    // private final SendableChooser<Command> autoChooser;
 
     // Replace with CommandPS4Controller or CommandJoystick if needed
-    private final Joystick m_flightStick = new Joystick(OIConstants.kFlightStickPort);
+    // public final Joystick m_flightStick = new Joystick(OIConstants.kFlightStickPort);
+    public final CommandJoystick m_flightStick = new CommandJoystick(OIConstants.kFlightStickPort);
     private final CommandXboxController m_secondaryController =
         new CommandXboxController(OIConstants.kDriverControllerPort);
 
@@ -46,6 +69,13 @@ public class RobotContainer {
     public RobotContainer() {
         // Configure the trigger bindings
         configureBindings();
+
+        // // Build an auto chooser. This will use Commands.none() as the default option.
+        // // autoChooser = AutoBuilder.buildAutoChooser();
+        // // Another option that allows you to specify the default auto by its name
+        // autoChooser = AutoBuilder.buildAutoChooser("Example Path");
+
+        // SmartDashboard.putData("Auto Chooser", autoChooser);
 
         // Configure default commands
         m_robotDrive.setDefaultCommand(
@@ -55,12 +85,12 @@ public class RobotContainer {
                 () ->
                     m_robotDrive.drive(
                         -MathUtil.applyDeadband(
-                            m_flightStick.getRawAxis(2), OIConstants.kDriveDeadband),
-                        -MathUtil.applyDeadband(
                             m_flightStick.getRawAxis(1), OIConstants.kDriveDeadband),
                         -MathUtil.applyDeadband(
-                            m_flightStick.getRawAxis(3), OIConstants.kDriveDeadband),
-                        true),
+                            m_flightStick.getRawAxis(0), OIConstants.kDriveDeadband),
+                        -MathUtil.applyDeadband(
+                            m_flightStick.getRawAxis(2), OIConstants.kDriveDeadband),
+                        true), // true or false
                 m_robotDrive
             )
         );
@@ -81,6 +111,9 @@ public class RobotContainer {
       // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
       // new Trigger(m_exampleSubsystem::exampleCondition)
       //     .onTrue(new ExampleCommand(m_exampleSubsystem));
+
+      m_flightStick.button(5).whileTrue(new SpinUp(this, 1.0));
+      m_flightStick.button(6).whileTrue(new ShootCommand(this));
 
       // Left Stick Button -> Set swerve to X
       m_secondaryController.leftStick().whileTrue(m_robotDrive.setXCommand());
@@ -107,7 +140,7 @@ public class RobotContainer {
             .setKinematics(DriveConstants.kDriveKinematics);
 
       // An example trajectory to follow. All units in meters.
-      Trajectory exampleTrajectory =
+      Trajectory autoTrajectory1 =
           TrajectoryGenerator.generateTrajectory(
               // Start at the origin facing the +X direction
               new Pose2d(0, 0, new Rotation2d(0)),
@@ -117,6 +150,17 @@ public class RobotContainer {
               new Pose2d(3, 0, new Rotation2d(0)),
               config);
 
+      Trajectory autoTrajectory2 = TrajectoryGenerator.generateTrajectory(
+              // Start at the origin facing the +X direction
+              new Pose2d(0, 0, new Rotation2d(0)), // assumes rot2d = 0, possibly change to gyro
+              // Pass through these two interior waypoints, making an 's' curve path
+              List.of(new Translation2d(0, 0.6), new Translation2d(0, 1.3)),
+              // End 3 meters straight ahead of where we started, facing forward
+              new Pose2d(0, 2, new Rotation2d(0)),
+              config);
+
+      Trajectory autoTrajectories = autoTrajectory1.concatenate(autoTrajectory2);
+
       var thetaController =
           new ProfiledPIDController(
               AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
@@ -124,7 +168,7 @@ public class RobotContainer {
 
       SwerveControllerCommand swerveControllerCommand =
           new SwerveControllerCommand(
-              exampleTrajectory,
+              autoTrajectory1,
               m_robotDrive::getPose, // Functional interface to feed supplier
               DriveConstants.kDriveKinematics,
 
@@ -136,9 +180,29 @@ public class RobotContainer {
               m_robotDrive);
 
       // Reset odometry to the starting pose of the trajectory.
-      m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+      // m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+
+      
 
       // Run path following command, then stop at the end.
       return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
     }
+
+    // Alternate for PathPlanner
+    // public Command getAutonomousCommand() {
+    //     // This method loads the auto when it is called, however, it is recommended
+    //     // to first load your paths/autos when code starts, then return the
+    //     // pre-loaded auto/path.
+
+    //     try {
+    //         // Load the path you want to follow using its name in the GUI
+    //         PathPlannerPath path = PathPlannerPath.fromPathFile("Example Path");
+
+    //         // Create a path following command using AutoBuilder. This will also trigger event markers.
+    //         return AutoBuilder.followPath(path);
+    //     } catch (Exception e) {
+    //         DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
+    //         return Commands.none();
+    //     }
+    // }
 }
