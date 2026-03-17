@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.math.util.Units;
@@ -59,6 +60,8 @@ public class Robot extends TimedRobot {
 
     double heading = m_robotContainer.m_robotDrive.getHeading();
     double omegaRps = Units.degreesToRotations(m_robotContainer.m_robotDrive.getTurnRate());
+    SmartDashboard.putNumber("Heading", heading);
+    SmartDashboard.putNumber("OmegaRPS", omegaRps);
     LimelightHelpers.SetRobotOrientation("limelight", heading, omegaRps, 0.0, 0.0, 0.0, 0.0);
     // LimelightHelpers.PoseEstimate llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
     LimelightHelpers.PoseEstimate mt2Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
@@ -67,6 +70,22 @@ public class Robot extends TimedRobot {
       // m_robotContainer.m_robotDrive.resetOdometry(mt2Estimate.pose);
       m_robotContainer.m_robotDrive.addVision(mt2Estimate.pose);
     }
+
+    // how many degrees back is your limelight rotated from perfectly vertical?-
+    double limelightMountAngleDegrees = 26.4; // 25
+
+    // distance from the center of the Limelight lens to the floor
+    double limelightLensHeightInches = 20.5; 
+
+    // distance from the target to the floor
+    double goalHeightInches = 44.25; 
+
+    //calculate distance
+    double angleToGoalRadians = (limelightMountAngleDegrees + LimelightHelpers.getTY("limelight"))  * (3.14159 / 180.0);
+    double distanceFromLimelightToGoalInches = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
+    double distanceHorizontal = distanceFromLimelightToGoalInches * Math.cos(angleToGoalRadians);
+
+    SmartDashboard.putNumber("Distance to Target", distanceHorizontal);
 
     SmartDashboard.putData("Drive", m_robotContainer.m_robotDrive);
     SmartDashboard.putNumber("ACtual Speed (m/s)", m_robotContainer.m_robotDrive.getVelocity());
@@ -117,8 +136,8 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    AutoCommands m_autonomousCommand = new AutoCommands(m_robotContainer);
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    // AutoCommands m_autonomousCommand = new AutoCommands(m_robotContainer);
 
     // schedule the autonomous command (example)
     // if (m_autonomousCommand != null) {
@@ -128,6 +147,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().schedule(m_autonomousCommand);
 
     Pose2d init_pose = new Pose2d();
+    Pose2d autoA_pose = new Pose2d(3.75, 0.63, Rotation2d.fromDegrees(0));
     m_robotContainer.m_robotDrive.resetOdometry(init_pose);
   }
 

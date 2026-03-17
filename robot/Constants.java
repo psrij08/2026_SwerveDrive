@@ -36,10 +36,15 @@ public final class Constants {
               new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
       // Angular offsets of the modules relative to the chassis in radians
-      public static final double kFrontLeftChassisAngularOffset = Math.PI;
-      public static final double kFrontRightChassisAngularOffset = Math.PI;
-      public static final double kBackLeftChassisAngularOffset = Math.PI;
-      public static final double kBackRightChassisAngularOffset = Math.PI;
+      // public static final double kFrontLeftChassisAngularOffset = Math.PI;
+      // public static final double kFrontRightChassisAngularOffset = Math.PI;
+      // public static final double kBackLeftChassisAngularOffset = Math.PI;
+      // public static final double kBackRightChassisAngularOffset = Math.PI;
+
+      public static final double kFrontLeftChassisAngularOffset = 0;
+      public static final double kFrontRightChassisAngularOffset = 0;
+      public static final double kBackLeftChassisAngularOffset = 0;
+      public static final double kBackRightChassisAngularOffset = 0;
 
       // public static final double kFrontLeftChassisAngularOffset = 0;
       // public static final double kFrontRightChassisAngularOffset = 0;
@@ -47,15 +52,15 @@ public final class Constants {
       // public static final double kBackRightChassisAngularOffset = 0;
 
       // SPARK MAX CAN IDs FINAL
-      public static final int kFrontLeftDrivingCanId = 6;
-      public static final int kRearLeftDrivingCanId = 8;
-      public static final int kFrontRightDrivingCanId = 3;
-      public static final int kRearRightDrivingCanId = 2;
+      public static final int kFrontLeftDrivingCanId = 2;
+      public static final int kRearLeftDrivingCanId = 3;
+      public static final int kFrontRightDrivingCanId = 8;
+      public static final int kRearRightDrivingCanId = 6;
 
-      public static final int kFrontLeftTurningCanId = 5;
-      public static final int kRearLeftTurningCanId = 7;
-      public static final int kFrontRightTurningCanId = 4;
-      public static final int kRearRightTurningCanId = 1;
+      public static final int kFrontLeftTurningCanId = 1;
+      public static final int kRearLeftTurningCanId = 4;
+      public static final int kFrontRightTurningCanId = 7;
+      public static final int kRearRightTurningCanId = 5;
 
       public static final int kShooterTopMotorCanId = 9;
       public static final int kShooterBottomMotorCanId = 10;
@@ -89,8 +94,8 @@ public final class Constants {
     }
 
     public static final class AutoConstants {
-      public static final double kMaxSpeedMetersPerSecond = 1; // 5
-      public static final double kMaxAccelerationMetersPerSecondSquared = 3; // 3
+      public static final double kMaxSpeedMetersPerSecond = 15; // 5
+      public static final double kMaxAccelerationMetersPerSecondSquared = 5; // 3
       public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
       public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 

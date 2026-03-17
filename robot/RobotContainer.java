@@ -6,6 +6,8 @@
 
 package frc.robot;
 
+import java.util.List;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -15,36 +17,20 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
-import frc.robot.commands.DriveDistance;
 import frc.robot.commands.ShootCommand;
 import frc.robot.commands.SpinUp;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
-
-import java.util.List;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathPlannerPath;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -62,7 +48,7 @@ public class RobotContainer {
     // Replace with CommandPS4Controller or CommandJoystick if needed
     // public final Joystick m_flightStick = new Joystick(OIConstants.kFlightStickPort);
     public final CommandJoystick m_flightStick = new CommandJoystick(OIConstants.kFlightStickPort);
-    private final CommandXboxController m_secondaryController =
+    public final CommandXboxController m_secondaryController =
         new CommandXboxController(OIConstants.kDriverControllerPort);
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -112,8 +98,21 @@ public class RobotContainer {
       // new Trigger(m_exampleSubsystem::exampleCondition)
       //     .onTrue(new ExampleCommand(m_exampleSubsystem));
 
-      m_flightStick.button(5).whileTrue(new SpinUp(this, 1.0));
+      m_flightStick.button(5).whileTrue(new SpinUp(this, 0.6)); // 0.71
       m_flightStick.button(6).whileTrue(new ShootCommand(this));
+
+      m_flightStick.button(7)
+      .whileTrue(new RunCommand(
+            () -> m_robotDrive.drive(
+                -MathUtil.applyDeadband(
+                    m_flightStick.getRawAxis(1), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(
+                    m_flightStick.getRawAxis(0), OIConstants.kDriveDeadband),
+                LimelightHelpers.getTX("limelight") * -0.05,
+                true
+            ),
+            m_robotDrive
+      ));
 
       // Left Stick Button -> Set swerve to X
       m_secondaryController.leftStick().whileTrue(m_robotDrive.setXCommand());
@@ -149,6 +148,15 @@ public class RobotContainer {
               // End 3 meters straight ahead of where we started, facing forward
               new Pose2d(3, 0, new Rotation2d(0)),
               config);
+
+      Trajectory autoTrajectory3 = 
+        TrajectoryGenerator.generateTrajectory(
+            List.of(
+                new Pose2d(3.75, 0.63, new Rotation2d(0)),
+                new Pose2d(0.63, 0.63, new Rotation2d(0))
+            ),
+            config
+        );
 
       Trajectory autoTrajectory2 = TrajectoryGenerator.generateTrajectory(
               // Start at the origin facing the +X direction

@@ -148,7 +148,7 @@ public class DriveSubsystem extends SubsystemBase {
         // );
 
         m_PoseEstimator.update(
-            m_gyro.getRotation2d(), // Rotation2d.fromDegrees(m_gyro.getAngle())
+            Rotation2d.fromDegrees(-m_gyro.getAngle()),
             new SwerveModulePosition[] {
                 m_frontLeft.getPosition(),
                 m_frontRight.getPosition(),
@@ -324,7 +324,7 @@ public class DriveSubsystem extends SubsystemBase {
      * @return the robot's heading in degrees, from -180 to 180
      */
     public double getHeading() {
-        return Rotation2d.fromDegrees(m_gyro.getAngle()).getDegrees();
+        return Rotation2d.fromDegrees(-m_gyro.getAngle()).getDegrees(); // negative or not
     }
 
     public SwerveModuleState[] getModuleStates() {
