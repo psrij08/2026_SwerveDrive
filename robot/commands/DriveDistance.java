@@ -28,7 +28,7 @@ public class DriveDistance extends Command {
         double currentDistance = m_robot.m_robotDrive.getPose().getTranslation().getNorm();
         double error = m_distance - currentDistance;
         double speed = Math.signum(error) * Math.min(0.5, Math.abs(error)); // Simple proportional control
-        m_robot.m_robotDrive.drive(speed, 0, 0, true); // Drive forward/backward
+        m_robot.m_robotDrive.drive(speed, 0, 0, false); // Drive forward/backward
         // m_robot.m_robotDrive.drive(3, 0, 0, true); // Drive forward/backward
     }
 
@@ -36,7 +36,7 @@ public class DriveDistance extends Command {
     public boolean isFinished() {
         double currentDistance = m_robot.m_robotDrive.getPose().getTranslation().getNorm();
         SmartDashboard.putNumber("Error", Math.abs(m_distance - currentDistance));
-        return Math.abs(m_distance - currentDistance) < 0.01; // Finish when within 1 cm of target
+        return Math.abs(m_distance - currentDistance) < 0.03; // Finish when within 3 cm of target
     }
 
     @Override

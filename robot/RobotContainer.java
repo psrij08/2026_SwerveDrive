@@ -27,9 +27,13 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.ArmPosition;
+import frc.robot.commands.IntakeSpeed;
 import frc.robot.commands.ShootCommand;
 import frc.robot.commands.SpinUp;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 /**
@@ -42,6 +46,8 @@ public class RobotContainer {
     // The robot's subsystems and commands are defined here...
     public final DriveSubsystem m_robotDrive = new DriveSubsystem();
     public final ShooterSubsystem m_robotShooter = new ShooterSubsystem();
+    public final IntakeSubsystem m_robotIntake = new IntakeSubsystem();
+    public final ClimberSubsystem m_robotClimber = new ClimberSubsystem();
 
     // private final SendableChooser<Command> autoChooser;
 
@@ -98,8 +104,10 @@ public class RobotContainer {
       // new Trigger(m_exampleSubsystem::exampleCondition)
       //     .onTrue(new ExampleCommand(m_exampleSubsystem));
 
-      m_flightStick.button(5).whileTrue(new SpinUp(this, 0.6)); // 0.71
-      m_flightStick.button(6).whileTrue(new ShootCommand(this));
+      m_secondaryController.button(1).whileTrue(new SpinUp(this, 0.71)); // 0.71
+      m_secondaryController.button(2).whileTrue(new ShootCommand(this));
+
+      LimelightHelpers.setPriorityTagID("limelight", 25); // 9 for red, 25 for blue
 
       m_flightStick.button(7)
       .whileTrue(new RunCommand(
@@ -114,11 +122,32 @@ public class RobotContainer {
             m_robotDrive
       ));
 
+      // m_secondaryController.povUp().whileTrue(new ArmPosition(this, 1));
+      // m_secondaryController.povLeft().whileTrue(new ArmPosition(this, 2));
+      // m_secondaryController.povDown().whileTrue(new ArmPosition(this, 3));
+      m_secondaryController.povLeft().whileTrue(new IntakeSpeed(this, -1));
+
+      m_secondaryController.leftBumper()
+      .whileTrue(new RunCommand(
+            () -> m_robotIntake.moveArm(
+                -m_secondaryController.getLeftY()
+            ),
+            m_robotIntake
+      ));
+      
+      m_secondaryController.rightBumper()
+      .whileTrue(new RunCommand(
+            () -> m_robotClimber.climb(
+                -m_secondaryController.getRightY()
+            ),
+            m_robotClimber
+      ));
+
       // Left Stick Button -> Set swerve to X
-      m_secondaryController.leftStick().whileTrue(m_robotDrive.setXCommand());
+      m_flightStick.button(2).whileTrue(m_robotDrive.setXCommand());
 
       // Start Button -> Zero swerve heading
-      m_secondaryController.start().onTrue(m_robotDrive.zeroHeadingCommand());
+      m_flightStick.button(13).onTrue(m_robotDrive.zeroHeadingCommand());
     }
 
     /**
@@ -176,7 +205,7 @@ public class RobotContainer {
 
       SwerveControllerCommand swerveControllerCommand =
           new SwerveControllerCommand(
-              autoTrajectory1,
+              autoTrajectory3,
               m_robotDrive::getPose, // Functional interface to feed supplier
               DriveConstants.kDriveKinematics,
 

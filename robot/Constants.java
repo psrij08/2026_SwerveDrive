@@ -22,6 +22,8 @@ public final class Constants {
       // the robot, rather the allowed maximum speeds
       public static final double kMaxSpeedMetersPerSecond = 10; // originally 4.8
       public static final double kMaxAngularSpeed = 3 * Math.PI; // radians per second
+      public static final double kMaxClimberSpeed = 0.5;
+      public static final double kMaxIntakeSpeed = 1.0;
 
       // Chassis configuration
       // Distance between centers of right and left wheels on robot
@@ -65,6 +67,17 @@ public final class Constants {
       public static final int kShooterTopMotorCanId = 9;
       public static final int kShooterBottomMotorCanId = 10;
 
+      public static final int kIntakeArmMotorCanId = 11;
+      public static final int kIntakeRollerMotorCanId = 12;
+      
+      public static final int kFeederMotorCanId = 13;
+
+      public static final double intakeArmKp = 0.07;
+      public static final double intakeArmKi = 0.01;
+      public static final double intakeArmKd = 0.01;
+
+      public static final int kClimberMotorCanId = 14;
+
       public static final boolean kGyroReversed = false;
     }
 
@@ -94,8 +107,8 @@ public final class Constants {
     }
 
     public static final class AutoConstants {
-      public static final double kMaxSpeedMetersPerSecond = 15; // 5
-      public static final double kMaxAccelerationMetersPerSecondSquared = 5; // 3
+      public static final double kMaxSpeedMetersPerSecond = 10; // 5
+      public static final double kMaxAccelerationMetersPerSecondSquared = 3; // 3
       public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
       public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 

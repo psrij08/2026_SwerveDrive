@@ -86,6 +86,7 @@ public class Robot extends TimedRobot {
     double distanceHorizontal = distanceFromLimelightToGoalInches * Math.cos(angleToGoalRadians);
 
     SmartDashboard.putNumber("Distance to Target", distanceHorizontal);
+    SmartDashboard.putNumber("Arm Angle", m_robotContainer.m_robotIntake.getEncoder());
 
     SmartDashboard.putData("Drive", m_robotContainer.m_robotDrive);
     SmartDashboard.putNumber("ACtual Speed (m/s)", m_robotContainer.m_robotDrive.getVelocity());
@@ -136,19 +137,22 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    // AutoCommands m_autonomousCommand = new AutoCommands(m_robotContainer);
+    // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    AutoCommands m_autonomousCommand = new AutoCommands(m_robotContainer);
+    // m_autonomousCommand = new DriveDistance(m_robotContainer, 1);
 
     // schedule the autonomous command (example)
     // if (m_autonomousCommand != null) {
     //   CommandScheduler.getInstance().schedule(m_autonomousCommand);
     // }
 
+    // CommandScheduler.getInstance().schedule(m_autonomousCommand);
+
     CommandScheduler.getInstance().schedule(m_autonomousCommand);
 
     Pose2d init_pose = new Pose2d();
     Pose2d autoA_pose = new Pose2d(3.75, 0.63, Rotation2d.fromDegrees(0));
-    m_robotContainer.m_robotDrive.resetOdometry(init_pose);
+    m_robotContainer.m_robotDrive.resetOdometry(autoA_pose);
   }
 
   /** This function is called periodically during autonomous. */

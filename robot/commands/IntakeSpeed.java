@@ -1,8 +1,5 @@
 package frc.robot.commands;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -10,25 +7,26 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 // import frc.robot.Robot;
 import frc.robot.RobotContainer;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.OIConstants;
 
-public class ShootCommand extends Command {
+public class IntakeSpeed extends Command {
     private RobotContainer m_robot;
+    private double m_speed;
 
-    
-
-    public ShootCommand(RobotContainer robot) {
+    public IntakeSpeed(RobotContainer robot, double speed) {
         // Use addRequirements() here to declare subsystem dependencies
         // eg. addRequirements(chassis);
-        addRequirements(robot.m_robotShooter);
+        addRequirements(robot.m_robotIntake);
         m_robot = robot;
+        m_speed = speed;
     }
 
     @Override
     public void execute() {
-        m_robot.m_robotShooter.shoot(); // Start top motor at provided speed
+        if (m_speed == 0.0) {
+            m_robot.m_robotIntake.stopIntake();
+        } else {
+            m_robot.m_robotIntake.startIntake(m_speed);
+        }
         // m_robot.m_robotDrive.drive(3, 0, 0, true); // Drive forward/backward
     }
 
@@ -39,7 +37,7 @@ public class ShootCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        m_robot.m_robotShooter.stopShooting(); // Stop the robot
+        m_robot.m_robotIntake.stopIntake(); // Stop the robot
     }
 
 }

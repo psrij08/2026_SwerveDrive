@@ -30,65 +30,69 @@ import frc.robot.Constants.DriveConstants;
 public class AutoCommands extends SequentialCommandGroup {
   private final double m_shootSpeed = 0.7;
 
-  // Create config for trajectory
-  TrajectoryConfig config =
-      new TrajectoryConfig(
-            AutoConstants.kMaxSpeedMetersPerSecond,
-            AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+  // // Create config for trajectory
+  // TrajectoryConfig config =
+  //     new TrajectoryConfig(
+  //           AutoConstants.kMaxSpeedMetersPerSecond,
+  //           AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+  //       // Add kinematics to ensure max speed is actually obeyed
+  //       .setKinematics(DriveConstants.kDriveKinematics);
 
-  // An example trajectory to follow. All units in meters.
-  Trajectory autoTrajectory1 =
-      TrajectoryGenerator.generateTrajectory(
-          // Start at the origin facing the +X direction
-          new Pose2d(3.75, 0.63, new Rotation2d(0)),
-          // Pass through these two interior waypoints, making an 's' curve path
-          List.of(new Translation2d(2.75, 0.63), new Translation2d(1.75, 0.63)),
-          // End 3 meters straight ahead of where we started, facing forward
-          new Pose2d(0.63, 0.63, new Rotation2d(180)),
-          config);
+  // // An example trajectory to follow. All units in meters.
+  // Trajectory autoTrajectory1 =
+  //     TrajectoryGenerator.generateTrajectory(
+  //         // Start at the origin facing the +X direction
+  //         new Pose2d(3.75, 0.63, new Rotation2d(0)),
+  //         // Pass through these two interior waypoints, making an 's' curve path
+  //         List.of(new Translation2d(2.75, 0.63), new Translation2d(1.75, 0.63)),
+  //         // End 3 meters straight ahead of where we started, facing forward
+  //         new Pose2d(0.63, 0.63, new Rotation2d(180)),
+  //         config);
 
-  Trajectory autoTrajectory3 = 
-      TrajectoryGenerator.generateTrajectory(
-          List.of(
-              new Pose2d(3.75, 0.63, new Rotation2d(0)),
-              new Pose2d(0.63, 0.63, new Rotation2d(0))
-          ),
-          config
-      );
+  // Trajectory autoTrajectory3 = 
+  //     TrajectoryGenerator.generateTrajectory(
+  //         List.of(
+  //             new Pose2d(3.75, 0.63, new Rotation2d(0)),
+  //             new Pose2d(0.63, 0.63, new Rotation2d(0))
+  //         ),
+  //         config
+  //     );
 
-  Trajectory autoTrajectory2 = TrajectoryGenerator.generateTrajectory(
-          // Start at the origin facing the +X direction
-          new Pose2d(0.63, 0.63, new Rotation2d(180)), // assumes rot2d = 0, possibly change to gyro
-          // Pass through these two interior waypoints, making an 's' curve path
-          List.of(new Translation2d(1.22, 1.59), new Translation2d(1.82, 2.54)),
-          // End 3 meters straight ahead of where we started, facing forward
-          new Pose2d(2.41, 3.5, new Rotation2d(0)),
-          config);
+  // Trajectory autoTrajectory2 = TrajectoryGenerator.generateTrajectory(
+  //         // Start at the origin facing the +X direction
+  //         new Pose2d(0.63, 0.63, new Rotation2d(180)), // assumes rot2d = 0, possibly change to gyro
+  //         // Pass through these two interior waypoints, making an 's' curve path
+  //         List.of(new Translation2d(1.22, 1.59), new Translation2d(1.82, 2.54)),
+  //         // End 3 meters straight ahead of where we started, facing forward
+  //         new Pose2d(2.41, 3.5, new Rotation2d(0)),
+  //         config);
 
-  private ProfiledPIDController thetaController =
-      new ProfiledPIDController(
-          AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+  // private ProfiledPIDController thetaController =
+  //     new ProfiledPIDController(
+  //         AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
 
   /** Creates a new AutoCommands. */
   public AutoCommands(RobotContainer t_robotC) {
     
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     addCommands(
-      new SwerveControllerCommand(
-          autoTrajectory3,
-          t_robotC.m_robotDrive::getPose, // Functional interface to feed supplier
-          DriveConstants.kDriveKinematics,
+      new DriveDistance(t_robotC, 1),
+      new WaitCommand(1.0),
+      new TurnAngle(t_robotC, 180),
+      new WaitCommand(3.0)
+      // new SwerveControllerCommand(
+      //     autoTrajectory3,
+      //     t_robotC.m_robotDrive::getPose, // Functional interface to feed supplier
+      //     DriveConstants.kDriveKinematics,
 
-          // Position controllers
-          new PIDController(AutoConstants.kPXController, 0, 0),
-          new PIDController(AutoConstants.kPYController, 0, 0),
-          thetaController,
-          t_robotC.m_robotDrive::setModuleStates,
-          t_robotC.m_robotDrive
-      )
+      //     // Position controllers
+      //     new PIDController(AutoConstants.kPXController, 0, 0),
+      //     new PIDController(AutoConstants.kPYController, 0, 0),
+      //     thetaController,
+      //     t_robotC.m_robotDrive::setModuleStates,
+      //     t_robotC.m_robotDrive
+      // )
       // new WaitCommand(3),
       // new SwerveControllerCommand(
       //     autoTrajectory2,

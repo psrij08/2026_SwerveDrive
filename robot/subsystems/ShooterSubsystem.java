@@ -35,11 +35,13 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final SparkMax topMotor;
     private final SparkMax bottomMotor;
+    private final SparkFlex feederMotor;
     
     /** Creates a new DriveSubsystem. */
     public ShooterSubsystem() {
         topMotor = new SparkMax(DriveConstants.kShooterTopMotorCanId, MotorType.kBrushed);
         bottomMotor = new SparkMax(DriveConstants.kShooterBottomMotorCanId, MotorType.kBrushed);
+        feederMotor = new SparkFlex(DriveConstants.kFeederMotorCanId, MotorType.kBrushless);
     }
 
     @Override
@@ -64,6 +66,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public void shoot() {
         bottomMotor.set(1.0);
+        feederMotor.set(-0.4);
     }
 
     public void stopShooter() {
@@ -73,6 +76,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void stopShooting() {
         topMotor.stopMotor();
         bottomMotor.stopMotor();
+        feederMotor.stopMotor();
     }
 
     /**
